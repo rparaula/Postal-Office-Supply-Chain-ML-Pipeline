@@ -4,7 +4,7 @@ Team 4 - Postal Office Database Web applications
 ---------------------------------------------------------
 Get Started:
 
-To access the Web application: Click on the link https://postalofficeportal-frgkd9fqd8a3cfc6.centralus-01.azurewebsites.net to access the Web application
+To access the Web application: Click on the link [https://postalofficeportal-frgkd9fqd8a3cfc6.centralus-01.azurewebsites.net](https://post-office-bi-system-aefsgadccra3cffk.centralus-01.azurewebsites.net/Login) to access the Web application
 
 To access the Database: open 'COSC3380_UH4.sql' in your preferred SQL editor
 
