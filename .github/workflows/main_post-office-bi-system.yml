@@ -31,26 +31,43 @@ jobs:
         run: nuget restore COSCPFWA\COSCPFWA.sln
 
       - name: Publish web app
-        run: >
-          msbuild COSCPFWA\COSCPFWA\COSCPFWA.csproj
-          /p:Configuration=Release
-          /p:DeployOnBuild=true
-          /p:WebPublishMethod=FileSystem
-          /p:DeleteExistingFiles=True
-          /p:publishUrl="${{ env.PUBLISH_DIR }}"
-
-      - name: Show published files
         shell: pwsh
         run: |
-          Write-Host "Publish directory:"
-          Write-Host "${{ env.PUBLISH_DIR }}"
-          Get-ChildItem "${{ env.PUBLISH_DIR }}" -Recurse
+          $publishDir = "${{ env.PUBLISH_DIR }}"
+          New-Item -ItemType Directory -Force -Path $publishDir | Out-Null
+
+          msbuild COSCPFWA\COSCPFWA\COSCPFWA.csproj `
+            /p:Configuration=Release `
+            /p:Platform=AnyCPU `
+            /p:DeployOnBuild=true `
+            /p:DeployTarget=WebPublish `
+            /p:WebPublishMethod=FileSystem `
+            /p:PublishProvider=FileSystem `
+            /p:PublishUrl="$publishDir\" `
+            /p:DeleteExistingFiles=True `
+            /p:SkipInvalidConfigurations=true
+
+      - name: Verify published files
+        shell: pwsh
+        run: |
+          $publishDir = "${{ env.PUBLISH_DIR }}"
+          Write-Host "Publish directory: $publishDir"
+
+          if (-not (Test-Path $publishDir)) {
+            throw "Publish directory was not created: $publishDir"
+          }
+
+          Get-ChildItem $publishDir -Recurse | Select-Object -First 100 FullName
+
+          if (-not (Test-Path "$publishDir\Web.config")) {
+            throw "Publish did not produce a deployable ASP.NET app. Web.config was not found in $publishDir."
+          }
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: ASP-app
-          path: ${{ env.PUBLISH_DIR }}
+          path: ${{ env.PUBLISH_DIR }}\**
           if-no-files-found: error
 
   deploy:
@@ -75,7 +92,6 @@ jobs:
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_C91F0C5CBC0347F8ABEE12851695E23B }}
 
       - name: Deploy to Azure Web App
-        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: post-office-bi-system
