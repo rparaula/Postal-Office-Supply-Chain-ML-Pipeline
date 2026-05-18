@@ -1,0 +1,75 @@
+name: Build and deploy ASP app to Azure Web App - post-office-bi-system
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Substitute connection string token in Web.Release.config
+        shell: pwsh
+        run: |
+          (Get-Content "COSCPFWA\COSCPFWA\Web.Release.config") `
+            -replace '#{DB_CONNECTION_STRING}#', '${{ secrets.DB_CONNECTION_STRING }}' |
+          Set-Content "COSCPFWA\COSCPFWA\Web.Release.config"
+
+      - name: Restore NuGet packages
+        run: nuget restore COSCPFWA\COSCPFWA.sln
+
+      - name: Publish web app
+        run: >
+          msbuild COSCPFWA\COSCPFWA\COSCPFWA.csproj
+          /p:Configuration=Release
+          /p:DeployOnBuild=true
+          /p:WebPublishMethod=FileSystem
+          /p:DeleteExistingFiles=True
+          /p:publishUrl="${{ github.workspace }}\published"
+
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v4
+        with:
+          name: ASP-app
+          path: published/**
+
+  deploy:
+    runs-on: windows-latest
+    needs: build
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: ASP-app
+          path: published
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_CF54E0FBA50F427AADBBCB81CB75D5EA }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_4E23389CD7584609BAFAAA6021197933 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_A6F6126FBDD14E3F809102E4E0038E10 }}
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: post-office-bi-system
+          slot-name: Production
+          package: published
