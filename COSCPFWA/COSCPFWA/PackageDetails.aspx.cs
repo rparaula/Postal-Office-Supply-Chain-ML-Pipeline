@@ -22,7 +22,7 @@ namespace COSCPFWA
             string packageMaterial = material.Text;
 
             // Retrieve connection string from web.config
-            string connString = ConfigurationManager.ConnectionStrings["DataBaseConnectionString"]?.ConnectionString;
+            string connString = ConfigurationManager.ConnectionStrings["DatabaseConnectionString"]?.ConnectionString;
 
             if (string.IsNullOrEmpty(connString))
             {

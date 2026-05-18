@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\GitHub Repositories\\Personal Projects\\Postal Office Supply Chain ML Pipeline\\COSCPFWA\\WeeklyRiskNotification\\WeeklyRiskNotification.csproj": {}
+    "Z:\\Computer Science\\GitHub Repositories\\Personal Projects\\Postal Office Supply Chain ML Pipeline\\COSCPFWA\\WeeklyRiskNotification\\WeeklyRiskNotification.csproj": {}
   },
   "projects": {
-    "C:\\GitHub Repositories\\Personal Projects\\Postal Office Supply Chain ML Pipeline\\COSCPFWA\\WeeklyRiskNotification\\WeeklyRiskNotification.csproj": {
+    "Z:\\Computer Science\\GitHub Repositories\\Personal Projects\\Postal Office Supply Chain ML Pipeline\\COSCPFWA\\WeeklyRiskNotification\\WeeklyRiskNotification.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\GitHub Repositories\\Personal Projects\\Postal Office Supply Chain ML Pipeline\\COSCPFWA\\WeeklyRiskNotification\\WeeklyRiskNotification.csproj",
+        "projectUniqueName": "Z:\\Computer Science\\GitHub Repositories\\Personal Projects\\Postal Office Supply Chain ML Pipeline\\COSCPFWA\\WeeklyRiskNotification\\WeeklyRiskNotification.csproj",
         "projectName": "WeeklyRiskNotification",
-        "projectPath": "C:\\GitHub Repositories\\Personal Projects\\Postal Office Supply Chain ML Pipeline\\COSCPFWA\\WeeklyRiskNotification\\WeeklyRiskNotification.csproj",
+        "projectPath": "Z:\\Computer Science\\GitHub Repositories\\Personal Projects\\Postal Office Supply Chain ML Pipeline\\COSCPFWA\\WeeklyRiskNotification\\WeeklyRiskNotification.csproj",
         "packagesPath": "C:\\Users\\Ryan\\.nuget\\packages\\",
-        "outputPath": "C:\\GitHub Repositories\\Personal Projects\\Postal Office Supply Chain ML Pipeline\\COSCPFWA\\WeeklyRiskNotification\\obj\\",
+        "outputPath": "Z:\\Computer Science\\GitHub Repositories\\Personal Projects\\Postal Office Supply Chain ML Pipeline\\COSCPFWA\\WeeklyRiskNotification\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

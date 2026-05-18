@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "laIfyB+QcCA=",
+  "dgSpecHash": "Q/a9jCRkwmw=",
   "success": true,
-  "projectFilePath": "C:\\GitHub Repositories\\Personal Projects\\Postal Office Supply Chain ML Pipeline\\COSCPFWA\\WeeklyRiskNotification\\WeeklyRiskNotification.csproj",
+  "projectFilePath": "Z:\\Computer Science\\GitHub Repositories\\Personal Projects\\Postal Office Supply Chain ML Pipeline\\COSCPFWA\\WeeklyRiskNotification\\WeeklyRiskNotification.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Ryan\\.nuget\\packages\\bouncycastle.cryptography\\2.3.1\\bouncycastle.cryptography.2.3.1.nupkg.sha512",
     "C:\\Users\\Ryan\\.nuget\\packages\\google.protobuf\\3.26.1\\google.protobuf.3.26.1.nupkg.sha512",

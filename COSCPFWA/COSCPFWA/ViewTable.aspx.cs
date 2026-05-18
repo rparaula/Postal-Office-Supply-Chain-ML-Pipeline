@@ -12,7 +12,7 @@ namespace COSCPFWA
 {
     public partial class ViewTable : System.Web.UI.Page
     {
-        private string connString = ConfigurationManager.ConnectionStrings["DataBaseConnectionString"].ConnectionString;
+        private string connString = ConfigurationManager.ConnectionStrings["DatabaseConnectionString"].ConnectionString;
 
         // dictionary to store primary keys for each table
         public readonly Dictionary<string, string> tablePrimaryKeys = new Dictionary<string, string>
