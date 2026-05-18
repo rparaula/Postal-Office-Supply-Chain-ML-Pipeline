@@ -9,45 +9,56 @@ on:
       - main
   workflow_dispatch:
 
+env:
+  PUBLISH_DIR: ${{ github.workspace }}\published
+
 jobs:
   build:
     runs-on: windows-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup MSBuild path
-        uses: microsoft/setup-msbuild@v1.0.2
+        uses: microsoft/setup-msbuild@v2
 
       - name: Setup NuGet
-        uses: NuGet/setup-nuget@v1.0.5
+        uses: NuGet/setup-nuget@v2
 
       - name: Restore NuGet packages
         run: nuget restore COSCPFWA\COSCPFWA.sln
 
       - name: Publish web app
         run: >
-            msbuild COSCPFWA\COSCPFWA\COSCPFWA.csproj
-            /p:Configuration=Release
-            /p:DeployOnBuild=true
-            /p:WebPublishMethod=FileSystem
-            /p:DeleteExistingFiles=True
-            /p:publishUrl="${{ github.workspace }}\published"
-        
+          msbuild COSCPFWA\COSCPFWA\COSCPFWA.csproj
+          /p:Configuration=Release
+          /p:DeployOnBuild=true
+          /p:WebPublishMethod=FileSystem
+          /p:DeleteExistingFiles=True
+          /p:publishUrl="${{ env.PUBLISH_DIR }}"
+
+      - name: Show published files
+        shell: pwsh
+        run: |
+          Write-Host "Publish directory:"
+          Write-Host "${{ env.PUBLISH_DIR }}"
+          Get-ChildItem "${{ env.PUBLISH_DIR }}" -Recurse
+
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: ASP-app
-          path: published/**
+          path: ${{ env.PUBLISH_DIR }}
+          if-no-files-found: error
 
   deploy:
     runs-on: windows-latest
     needs: build
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      id-token: write
+      contents: read
 
     steps:
       - name: Download artifact from build job
@@ -55,7 +66,7 @@ jobs:
         with:
           name: ASP-app
           path: published
-      
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -67,7 +78,6 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'post-office-bi-system'
-          slot-name: 'Production'
+          app-name: post-office-bi-system
+          slot-name: Production
           package: published
-          
