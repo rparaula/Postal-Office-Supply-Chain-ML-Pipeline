@@ -20,15 +20,10 @@
                     </div>
                     <div class="card-body">
                         <div class="form-group text-center">
-                            <label for="ddlLockerLocation">Locker Location</label>
+                            <asp:Label ID="LockerLocationLabel" runat="server" AssociatedControlID="ddlLockerLocation" Text="Locker Location"></asp:Label>
                             <div class="d-flex justify-content-center">
                                 <asp:DropDownList ID="ddlLockerLocation" runat="server" CssClass="form-control w-50">
                                     <asp:ListItem Text="Select Location" Value="" />
-                                    <asp:ListItem Text="Location 1" Value="1" />
-                                    <asp:ListItem Text="Location 2" Value="2" />
-                                    <asp:ListItem Text="Location 3" Value="3" />
-                                    <asp:ListItem Text="Location 4" Value="4" />
-                                    <asp:ListItem Text="Location 5" Value="5" />
                                 </asp:DropDownList>
                             </div>
                         </div>
@@ -36,7 +31,8 @@
 
                         <div class="form-group text-center mt-4">
                             <asp:Button ID="btnSubscribe" runat="server" Text="Subscribe" CssClass="btn btn-primary btn-lg"
-                                        OnClientClick="return openPaymentModal();" style="background-color:#0d47a1;" />
+                                OnClientClick="return openPaymentModal();" style="background-color:#0d47a1;" />
+                            <input type="hidden" id="confirmPaymentField" name="confirmPayment" value="" />
                         </div>
                     </div>
                 </div>
@@ -97,13 +93,9 @@
             return false;
         }
 
-        // Confirm payment and process subscription
         function confirmPayment() {
-            // add payment validation code 
-
-            // Close modal and submit subscription
-            document.getElementById('paymentModal').classList.remove('show');
-            __doPostBack('<%= btnSubscribe.ClientID %>', '');
+            document.getElementById('confirmPaymentField').value = 'true';
+            document.forms[0].submit();
         }
     </script>
 </asp:Content>
