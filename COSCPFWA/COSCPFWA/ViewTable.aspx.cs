@@ -1,197 +1,182 @@
-﻿using MySql.Data.MySqlClient;
+using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
-using System.Linq;
-using System.Web;
-using System.Web.UI;
 using System.Web.UI.WebControls;
 
 namespace COSCPFWA
 {
     public partial class ViewTable : System.Web.UI.Page
     {
-        private string connString = ConfigurationManager.ConnectionStrings["DataBaseConnectionString"].ConnectionString;
+        private const string DefaultTable = "customer";
 
-        // dictionary to store primary keys for each table
+        private string connString = ConfigurationManager.ConnectionStrings["DataBaseConnectionString"]?.ConnectionString;
+
         public readonly Dictionary<string, string> tablePrimaryKeys = new Dictionary<string, string>
         {
-            {"customer", "CustomerID" },
-            {"package", "PackageID" },
+            { "customer", "customer_id" },
             { "employee", "employee_id" },
-            {"notifications", "NotificationID" },
-            {"trackinghistory", "TrackingID" },
-            {"incident", "IncidentID" },
-            {"money_orders", "ServiceID" },
-            {"shippingdetails", "SenderID" },
-            {"inventory", "inventory_item_id" },
-            {"store", "transaction_id" },
-            {"goverment_services", "ServiceID" }
-            // add primary keys of each table you include in the drop-down list
+            { "departments", "department_id" },
+            { "postaloffice", "postal_office_id" },
+            { "package", "package_id" },
+            { "package_status", "package_status_id" },
+            { "service_type", "service_type_id" },
+            { "shipping_method", "shipping_method_id" },
+            { "shippingdetails", "package_id" },
+            { "pickupdetails", "package_id" },
+            { "notifications", "notification_id" },
+            { "trackinghistory", "tracking_id" },
+            { "incident", "incident_id" },
+            { "incident_type", "incident_type_id" },
+            { "incident_severity", "incident_severity_id" },
+            { "incident_status", "incident_status_id" },
+            { "refunds", "refund_id" },
+            { "inventory", "inventory_item_id" },
+            { "store", "transaction_id" },
+            { "smartlocker", "locker_id" },
+            { "lockerassignment", "locker_assignment_id" },
+            { "lockerlocations", "locker_location_id" },
+            { "package_to_locker", "package_id" },
+            { "roles", "role_id" }
         };
+
+        protected override void OnInit(EventArgs e)
+        {
+            base.OnInit(e);
+            gvData.PageIndexChanging += gvData_PageIndexChanging;
+        }
 
         protected void Page_Load(object sender, EventArgs e)
         {
             if (!IsPostBack)
             {
-                LoadTableData("customer"); // default table is customer
+                LoadTableData(DefaultTable);
             }
         }
 
-        //load data based on the selected table
-        protected void LoadTableData(string tableName)
-        {
-            using (MySqlConnection conn = new MySqlConnection(connString))
-            {
-                conn.Open();
-                string query = $"SELECT * FROM {tableName}";
-
-                using (MySqlCommand cmd = new MySqlCommand(query, conn))
-                {
-                    using (MySqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        DataTable dt = new DataTable();
-                        dt.Load(reader);
-                        gvData.DataSource = dt;
-                        gvData.DataBind();
-                        gvData.Visible = true; // show on the GridView after data loads
-                    }
-                }
-            }
-        }
-
-        // this handles the dropdown selection change to load data
         protected void ddlTableSelect_SelectedIndexChanged(object sender, EventArgs e)
         {
-            string selectedTable = ddlTableSelect.SelectedValue;
-            if (!string.IsNullOrEmpty(selectedTable))
-            {
-                LoadTableData(selectedTable);
-            }
-        }
-
-        // Edit the row by setting GridView into edit mode
-        protected void gvData_RowEditing(object sender, GridViewEditEventArgs e)
-        {
-            gvData.EditIndex = e.NewEditIndex;
+            gvData.PageIndex = 0;
             LoadTableData(ddlTableSelect.SelectedValue);
         }
 
-        // Row updating, update record in database
-        /*
-        protected void gvData_RowUpdating(object sender, GridViewUpdateEventArgs e)
+        protected void gvData_PageIndexChanging(object sender, GridViewPageEventArgs e)
         {
-            GridViewRow row = gvData.Rows[e.RowIndex];
+            gvData.PageIndex = e.NewPageIndex;
+            LoadTableData(ddlTableSelect.SelectedValue);
+        }
+
+        protected void gvData_RowDeleting(object sender, GridViewDeleteEventArgs e)
+        {
             string tableName = ddlTableSelect.SelectedValue;
-            string primaryKeyColumn = GetPrimaryKeyColumn(tableName);
-            string rowID = ((Label)row.FindControl("lblPrimaryKey")).Text; 
-
-            //A list to store column update statements
-            List<string> updateColumns = new List<string>();
-            Dictionary<string, object> updatedValues = new Dictionary<string, object>();
-
-            // Loop through each cell
-            for (int i = 1; i < row.Cells.Count; i++)
+            string primaryKeyColumn;
+            if (!tablePrimaryKeys.TryGetValue(tableName, out primaryKeyColumn))
             {
-                // Check if the cell contains a control and if that control is a TextBox
-                if (row.Cells[i].Controls.Count > 0 && row.Cells[i].Controls[0] is TextBox txtBox)
-                {
-                    string columnName = gvData.HeaderRow.Cells[i].Text; // Get column name from the header
-                    string newValue = txtBox.Text.Trim();
-
-                    updateColumns.Add($"{columnName} = @{columnName}");
-                    updatedValues.Add(columnName, newValue);
-                }
+                ShowAlert("Selected table is not available in the v2 schema viewer.");
+                return;
             }
 
-            if (updateColumns.Count == 0) return; // no updates needed
+            if (gvData.DataKeys == null || gvData.DataKeys[e.RowIndex] == null)
+            {
+                ShowAlert("Unable to identify the selected row.");
+                return;
+            }
 
-            string connString = ConfigurationManager.ConnectionStrings["DataBaseConnectionString"].ConnectionString;
+            object rowID = gvData.DataKeys[e.RowIndex].Value;
+            if (rowID == null || rowID == DBNull.Value)
+            {
+                ShowAlert("Unable to identify the selected row.");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(connString))
+            {
+                ShowAlert("Database connection string is missing or misconfigured.");
+                return;
+            }
 
             using (MySqlConnection conn = new MySqlConnection(connString))
             {
                 try
                 {
                     conn.Open();
-
-                    // UPDATE query
-                    string query = $"UPDATE {tableName} SET {string.Join(", ", updateColumns)} WHERE {primaryKeyColumn} = @RowID";
+                    string query = string.Format(
+                        "DELETE FROM `{0}` WHERE `{1}` = @RowID",
+                        tableName,
+                        primaryKeyColumn);
 
                     using (MySqlCommand cmd = new MySqlCommand(query, conn))
                     {
-                        // add param updated column
-                        foreach (var kvp in updatedValues)
-                        {
-                            cmd.Parameters.AddWithValue($"@{kvp.Key}", kvp.Value);
-                        }
-
-                        // add param for primary key
                         cmd.Parameters.AddWithValue("@RowID", rowID);
-
                         cmd.ExecuteNonQuery();
                     }
 
-                    gvData.EditIndex = -1; // exit edit
-                    LoadTableData(tableName); // reload data
+                    LoadTableData(tableName);
+                }
+                catch (MySqlException ex)
+                {
+                    ShowAlert("Database error deleting record: " + ex.Message);
                 }
                 catch (Exception ex)
                 {
-                    Response.Write("<script>alert('Error updating row: " + ex.Message + "');</script>");
+                    ShowAlert("Error deleting record: " + ex.Message);
                 }
             }
         }
 
-
-        */
-        // cancel edit mode
-        protected void gvData_RowCancelingEdit(object sender, GridViewCancelEditEventArgs e)
+        protected void LoadTableData(string tableName)
         {
-            gvData.EditIndex = -1; 
-            LoadTableData(ddlTableSelect.SelectedValue);
-        }
+            string primaryKeyColumn;
+            if (!tablePrimaryKeys.TryGetValue(tableName, out primaryKeyColumn))
+            {
+                ShowAlert("Selected table is not available in the v2 schema viewer.");
+                return;
+            }
 
-        // delete row from table, deletes from database
-        protected void gvData_RowDeleting(object sender, GridViewDeleteEventArgs e)
-        {
-            GridViewRow row = gvData.Rows[e.RowIndex];
-            string rowID = ((Label)row.FindControl("lblPrimaryKey")).Text;
-            string tableName = ddlTableSelect.SelectedValue;
-
-            string primaryKeyColumn = GetPrimaryKeyColumn(tableName); // use helper to get primary key column
-            string connString = ConfigurationManager.ConnectionStrings["DataBaseConnectionString"].ConnectionString;
+            if (string.IsNullOrEmpty(connString))
+            {
+                ShowAlert("Database connection string is missing or misconfigured.");
+                return;
+            }
 
             using (MySqlConnection conn = new MySqlConnection(connString))
             {
                 try
                 {
                     conn.Open();
-                    string query = $"DELETE FROM {tableName} WHERE {primaryKeyColumn} = @RowID";
-                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@RowID", rowID);
-                        cmd.ExecuteNonQuery();
-                    }
+                    string query = string.Format(
+                        "SELECT * FROM `{0}` ORDER BY `{1}` LIMIT 500",
+                        tableName,
+                        primaryKeyColumn);
 
-                    LoadTableData(tableName); // Reload table data
+                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                    using (MySqlDataAdapter adapter = new MySqlDataAdapter(cmd))
+                    {
+                        DataTable dt = new DataTable();
+                        adapter.Fill(dt);
+
+                        gvData.DataKeyNames = new[] { primaryKeyColumn };
+                        gvData.DataSource = dt;
+                        gvData.DataBind();
+                        gvData.Visible = true;
+                    }
                 }
-                catch (Exception)
+                catch (MySqlException ex)
                 {
-                    Response.Write("<script>alert('Error deleting record.');</script>");
+                    ShowAlert("Database error loading table: " + ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    ShowAlert("Error loading table: " + ex.Message);
                 }
             }
         }
 
-
-        // Helper function to get primary key column based on table
-        private string GetPrimaryKeyColumn(string tableName)
+        private void ShowAlert(string message)
         {
-            if (tablePrimaryKeys.TryGetValue(tableName, out string primaryKey))
-            {
-                return primaryKey;
-            }
-            // handle tables without primary key
-            throw new Exception($"Primary key for table '{tableName}' is not defined.");
+            string safeMessage = message.Replace("\\", "\\\\").Replace("'", "\\'");
+            ClientScript.RegisterStartupScript(GetType(), "viewTableAlert", $"alert('{safeMessage}');", true);
         }
     }
 }
