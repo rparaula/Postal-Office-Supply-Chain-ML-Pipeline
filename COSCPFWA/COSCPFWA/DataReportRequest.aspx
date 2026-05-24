@@ -99,7 +99,7 @@
         <div class="report-form-container">
             <h2>Employee/Customer Report Request</h2>
             
-            <form id="form1">
+            <div id="reportForm">
 
                 <div class="form-group">
                     <label for="reportType">Report Type (Customer, Employee, or Revenue)</label>
@@ -107,7 +107,7 @@
                         <asp:ListItem Value="" Text="Select Report Type" Disabled="true" Selected="true"></asp:ListItem>
                         <asp:ListItem Value="Customer" Text="Customer"></asp:ListItem>
                         <asp:ListItem Value="Employee" Text="Employee"></asp:ListItem>
-                        <asp:ListItem Value="'Revenue" Text="Revenue"></asp:ListItem>
+                        <asp:ListItem Value="Revenue" Text="Revenue"></asp:ListItem>
                     </asp:DropDownList>
                 </div>
 
@@ -136,6 +136,7 @@
                             <asp:ListItem value="">Select Package Type</asp:ListItem>
                             <asp:ListItem value="Delivery">Delivery</asp:ListItem>
                             <asp:ListItem value="SmartLocker">SmartLocker</asp:ListItem>
+                            <asp:ListItem value="Pickup">Pickup</asp:ListItem>
                         </asp:DropDownList>
                     </div>
                 
@@ -158,7 +159,7 @@
                     <div class="form-group">
                         <label for="xAxis">Select X-axis</label>
                         <asp:DropDownList ID="xAxis" runat="server" CssClass="form-select">
-                            <asp:ListItem Text="ServiceType" Value="ServiceType"></asp:ListItem>
+                            <asp:ListItem Text="Service Type" Value="service_type"></asp:ListItem>
                         </asp:DropDownList>
                     </div>
 
@@ -166,7 +167,7 @@
                     <div class="form-group">
                         <label for="yAxis">Select Y-axis</label>
                         <asp:DropDownList ID="yAxis" runat="server" CssClass="form-select">
-                            <asp:ListItem Text="# of Customers" Value="CustomerCount"></asp:ListItem>
+                            <asp:ListItem Text="# of Packages" Value="package_count"></asp:ListItem>
                         </asp:DropDownList>
                     </div>
 
@@ -179,7 +180,7 @@
 
                     <!-- Canvas element to display the generated chart -->
                     <div>
-                        <canvas id="myChart" width="400" height="200"></canvas>
+                        <canvas id="customerChart" width="400" height="200"></canvas>
                     </div>
 
                     <!-- Hidden field to store JSON data for chart rendering -->
@@ -205,6 +206,7 @@
                             <asp:ListItem value="">Select Package Type</asp:ListItem>
                             <asp:ListItem value="Delivery">Delivery</asp:ListItem>
                             <asp:ListItem value="SmartLocker">SmartLocker</asp:ListItem>
+                            <asp:ListItem value="Pickup">Pickup</asp:ListItem>
                         </asp:DropDownList>
                     </div>
                 
@@ -228,7 +230,7 @@
                     <div class="form-group">
                         <label for="xAxis">Select X-axis</label>
                         <asp:DropDownList ID="DropDownList2" runat="server" CssClass="form-select">
-                            <asp:ListItem Text="ServiceType" Value="ServiceType"></asp:ListItem>
+                            <asp:ListItem Text="Service Type" Value="service_type"></asp:ListItem>
                         </asp:DropDownList>
                     </div>
 
@@ -236,7 +238,7 @@
                     <div class="form-group">
                         <label for="yAxis">Select Y-axis</label>
                         <asp:DropDownList ID="DropDownList3" runat="server" CssClass="form-select">
-                            <asp:ListItem Text="# of Customers" Value="CustomerCount"></asp:ListItem>
+                            <asp:ListItem Text="# of Packages" Value="package_count"></asp:ListItem>
                         </asp:DropDownList>
                     </div>
 
@@ -249,7 +251,7 @@
 
                     <!-- Canvas element to display the generated chart -->
                     <div>
-                        <canvas id="myChart" width="400" height="200"></canvas>
+                        <canvas id="employeeChart" width="400" height="200"></canvas>
                     </div>
 
                     <!-- Hidden field to store JSON data for chart rendering -->
@@ -264,9 +266,14 @@
 
                 <script type="text/javascript">
                     // Function to render chart using Chart.js and JSON data from server
-                    function renderChart(data)
+                    function renderChart(data, canvasId)
                     {
-                        var ctx = document.getElementById('myChart').getContext('2d');
+                        var canvas = document.getElementById(canvasId);
+                        if (!canvas) {
+                            return;
+                        }
+
+                        var ctx = canvas.getContext('2d');
                         var chartData = JSON.parse(data);
                         new Chart(ctx, {
                             type: 'bar',
@@ -295,11 +302,16 @@
                     {
                         var reportType = document.getElementById('<%= reportType.ClientID %>').value;
                         var customerReport = document.getElementById("customerReport");
+                        var employeeReport = document.getElementById("employeeReport");
                         customerReport.style.display = "none";
                         employeeReport.style.display = "none";
 
                         // Show relevant section based on report type
                         if (reportType === "Customer")
+                        {
+                            customerReport.style.display = "block";
+                        }
+                        else if (reportType === "Revenue")
                         {
                             customerReport.style.display = "block";
                         }
@@ -315,13 +327,14 @@
                         toggleForms();
                         var chartData = document.getElementById('<%= chartData.ClientID %>').value;
                         if (chartData) {
-                            renderChart(chartData);
+                            var reportType = document.getElementById('<%= reportType.ClientID %>').value;
+                            renderChart(chartData, reportType === "Employee" ? "employeeChart" : "customerChart");
                         }
                     };
                 </script>
                 
                 <asp:GridView ID="ResultGrid" runat="server" AutoGenerateColumns="true" CssClass="table table-striped table-hover mt-4" />
-            </form>
+            </div>
         </div>
     </div>
 </asp:Content>
