@@ -14,11 +14,11 @@ download the repository and open the COSCPFWA.sln file
 ---------------------------------------------------------
 Permissions:
 
-Customer view: UH4customer@gmail.com
+Customer view: customer@email.com
 Password: customerpassword
 
-Employee view: UH4employee@gmail.com
+Employee view: employee@email.com
 Password: employeepassword
 
-Manager view: UH4manager@gmail.com
+Manager view: manager@email.com
 Password: adminpassword
