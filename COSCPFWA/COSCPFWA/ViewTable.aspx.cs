@@ -25,8 +25,8 @@ namespace COSCPFWA
             {"incident", "IncidentID" },
             {"money_orders", "ServiceID" },
             {"shippingdetails", "SenderID" },
-            {"inventory", "ItemID" },
-            {"store", "TransactionID" },
+            {"inventory", "inventory_item_id" },
+            {"store", "transaction_id" },
             {"goverment_services", "ServiceID" }
             // add primary keys of each table you include in the drop-down list
         };
@@ -175,7 +175,7 @@ namespace COSCPFWA
 
                     LoadTableData(tableName); // Reload table data
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     Response.Write("<script>alert('Error deleting record.');</script>");
                 }
@@ -195,4 +195,3 @@ namespace COSCPFWA
         }
     }
 }
-                    
